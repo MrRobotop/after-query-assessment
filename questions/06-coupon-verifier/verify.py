@@ -16,6 +16,7 @@ QUESTION_DIR = Path(__file__).resolve().parent
 BASELINE = QUESTION_DIR / "agent" / "checkout.py"
 FAIL_TO_PASS = (
     "test_stacked_single_line",
+    "test_stacked_single_line_with_multiple_units",
     "test_stacked_mixed_cart",
     "test_coupon_rounding_at_half_cent",
     "test_coupon_on_fully_discounted_cart",
@@ -62,6 +63,10 @@ class CheckoutTests(unittest.TestCase):
         # A $100 unit is reduced to $80 before the $8 coupon.
         self.assert_checkout_total([cart_line(10_000, 2_000)], 10, 7_200)
 
+    def test_stacked_single_line_with_multiple_units(self):
+        # Three $10 units with $2 off each leave $24 eligible for a $2.40 coupon.
+        self.assert_checkout_total([cart_line(1_000, 200, quantity=3)], 10, 2_160)
+
     def test_stacked_mixed_cart(self):
         # Two discounted units and a full-price item leave $15.85 eligible.
         # The 17% coupon rounds to $2.69 on the entire adjusted subtotal.
@@ -98,7 +103,8 @@ class CheckoutTests(unittest.TestCase):
         for scenario in range(12):
             price = rng.randint(200, 7_000)
             lines = [cart_line(price, rng.randint(100, price), rng.randint(1, 5))]
-            for _ in range(rng.randint(1, 4)):
+            extra_lines = 0 if scenario % 4 == 1 else rng.randint(1, 4)
+            for _ in range(extra_lines):
                 price = rng.randint(1, 5_000)
                 discount = 0 if scenario % 3 == 0 else rng.randint(0, price)
                 lines.append(cart_line(price, discount, rng.randint(1, 3)))

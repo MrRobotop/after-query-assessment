@@ -24,18 +24,25 @@ The new case exercises 1–4% and 96–99% deterministically. The $100.00 item h
 
 I also reran the partial fix that selects the gross subtotal below 5%. The previous suite accepted it at all three seeds. The new 1% case rejects it at every seed because it charges $86.50 on the same basket.
 
+## Orders with several units on one line
+
+I tried a patch that uses the gross coupon base only when the cart has one line with three or more units. It passed all eight previous checks at the three recorded seeds. The fixed single-line cases used quantities of one or two, and the generated carts always had at least two lines.
+
+The new case buys three $10.00 units on one line with $2.00 off each. The $24.00 subtotal earns a $2.40 coupon at 10%, leaving $21.60. The partial fix discounts the $30.00 gross subtotal and returns $21.00. The verifier checks this case at every seed and now also generates some single-line baskets with varied quantities. Both the fixed case and the seeded case caught the partial fix at all three seeds. [Verifier](verify.py)
+
 ## Re-run evidence
 
-I copied the baseline into temporary candidate directories, applied the two supplied patches to separate copies, and called `verify.py --candidate` on each at seeds `20261117`, `403`, and `8128`. I graded the zero-subtotal and rate-skipping variants the same way. Each seed gave the following results, with both pass-to-pass checks green for every candidate.
+I graded separate copies of the baseline, reference, hardcoded example, and partial fixes with `verify.py --candidate` at seeds `20261117`, `403`, and `8128`. Each seed gave the following results, with both pass-to-pass checks green for every candidate.
 
 | Candidate | Checks passed | Exit status |
 | --- | ---: | ---: |
-| Baseline | 2 of 8 | 1 |
-| Reference patch | 8 of 8 | 0 |
-| Hardcoded single-line result | 3 of 8 | 1 |
-| Zero-subtotal fallback | 7 of 8 | 1 |
-| Use gross subtotal below 5% | 7 of 8 | 1 |
-| Skip coupons below 5% | 7 of 8 | 1 |
-| Skip coupons from 96% to 99% | 7 of 8 | 1 |
+| Baseline | 2 of 9 | 1 |
+| Reference patch | 9 of 9 | 0 |
+| Hardcoded single-line result | 3 of 9 | 1 |
+| Zero-subtotal fallback | 8 of 9 | 1 |
+| Use gross subtotal below 5% | 8 of 9 | 1 |
+| Skip coupons below 5% | 8 of 9 | 1 |
+| Skip coupons from 96% to 99% | 8 of 9 | 1 |
+| Use gross subtotal for one line with at least three units | 7 of 9 | 1 |
 
 The hardcoded patch passes the first example and still returns $12.73 on the mixed cart. The fallback’s sole failure is the fully discounted cart. The local results cover the supplied pricing fixture and these sampled candidates. [Run the verifier](README.md#run-the-demonstration)
