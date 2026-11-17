@@ -1,0 +1,10 @@
+diff --git a/checkout.py b/checkout.py
+--- a/checkout.py
++++ b/checkout.py
+@@ -15,5 +15,5 @@ def compute_cart_total(lines, coupon_percent):
+     gross_subtotal = sum(line["unit_price_cents"] * line["quantity"] for line in lines)
+     line_discounts = sum(line["unit_discount_cents"] * line["quantity"] for line in lines)
+     adjusted_subtotal = gross_subtotal - line_discounts
+-    coupon_discount = _percent_discount_cents(gross_subtotal, coupon_percent)
++    coupon_discount = _percent_discount_cents(adjusted_subtotal, coupon_percent)
+     return adjusted_subtotal - coupon_discount
