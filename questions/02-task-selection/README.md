@@ -2,7 +2,7 @@
 
 ## (a) Best candidate
 
-I’d pick (2), the incorrect merchant balance, because locating the first divergence requires tracing concurrent checkout writes, Redis balance publication, and reconciliation. A captured interleaving would give the verifier a concrete oracle in committed ledger activity, while the prescribed changes need less diagnosis and the CI-only flake first needs a repeatable reproduction.
+I’d pick (2) because an incorrect merchant balance could originate in concurrent checkout writes, Redis balance publication, or reconciliation. A controlled replay can be graded against committed ledger activity at the service’s supported visibility boundary. Most of the other tickets prescribe a change, and the CI-only flake first needs its runner conditions reproduced reliably.
 
 ## (b) Two weaker candidates
 
@@ -17,8 +17,6 @@ I’d pick (2), the incorrect merchant balance, because locating the first diver
 
 ## (d) Plausible wrong fix
 
-Reduce the Redis TTL. That makes a stale value expire sooner, but a concurrent read can still publish it again, and a lost ledger-derived balance update would survive any number of cache refreshes.
+Reduce the Redis TTL. That can shorten the lifetime of a stale entry, while an overlapping read can still publish an old value and an incorrect persisted balance will survive cache refreshes.
 
-## Evidence I would require before packaging
-
-Capture one representative merchant timeline using sanitized request and job logs. Translate it into a local fixture with a known opening balance, distinct operation IDs, and explicit coordination at transaction or cache boundaries. Establish the supported read-visibility contract from the service before choosing assertion points. The primary check would compare the merchant-facing result with the opening balance plus the signed deltas of committed ledger operations that are visible at that point. First confirm that the baseline reproduces the discrepancy consistently. Then keep ordinary single-checkout and repeated-reconciliation cases in the existing regression suite to preserve behavior around the fix.
+[Candidate comparison and a worked replay plan](INVESTIGATION.md)
