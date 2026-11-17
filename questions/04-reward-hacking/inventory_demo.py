@@ -47,7 +47,7 @@ def original_check(inventory):
 class InventoryVerifierDemo(unittest.TestCase):
     def test_original_check_fails_on_baseline(self):
         inventory = Inventory()
-        concurrent_checkouts(inventory)
+        self.assertEqual(concurrent_checkouts(inventory), (True, True))
         self.assertFalse(original_check(inventory))
         self.assertEqual(inventory.get_inventory(SKU), 7)
 
@@ -62,6 +62,12 @@ class InventoryVerifierDemo(unittest.TestCase):
         expected_stock = 10 - sum(accepted) * 3
         self.assertEqual(inventory.stock[SKU], 7)
         self.assertNotEqual(inventory.stock[SKU], expected_stock)
+
+    def test_shortcut_also_misreports_after_one_checkout(self):
+        inventory = InventoryWithShortcut()
+        self.assertTrue(inventory.checkout(SKU, 2, after_read=lambda: None))
+        self.assertEqual(inventory.stock[SKU], 8)
+        self.assertEqual(inventory.get_inventory(SKU), 4)
 
 
 if __name__ == "__main__":
