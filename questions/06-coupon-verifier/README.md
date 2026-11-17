@@ -2,11 +2,13 @@
 
 The screenshot describes a checkout service without supplying its source, so I built a small executable fixture for the pricing contract. [`agent/`](agent/) contains the candidate workspace and prompt. The rest of this directory is the reviewer package.
 
+The investigation shows how I derived the expected totals and tested the verifier against candidate patches. [Investigation](INVESTIGATION.md)
+
 ## (a) Fail-to-pass
 
 One $100.00 item has a $20.00 line discount and a 10% coupon, which takes another $8.00 off the adjusted subtotal. The checkout assertion expects $72.00 and the baseline returns $70.00 because it takes the coupon from $100.00. [Fail-to-pass test](verify.py)
 
-The other fail-to-pass cases cover a mixed cart with quantities, a coupon amount exactly halfway between two cents, and varied baskets computed with an independent `Decimal` oracle. The [reference patch](reference.patch) changes the coupon base and reuses the existing rounding function.
+The other fail-to-pass cases cover a mixed cart with quantities, a coupon amount exactly halfway between two cents, a zero subtotal after line-item discounts, and varied baskets computed with an independent `Decimal` oracle. The [reference patch](reference.patch) changes the coupon base and reuses the existing rounding function.
 
 ## (b) Pass-to-pass
 
@@ -43,9 +45,9 @@ python3 questions/06-coupon-verifier/verify.py --demo
 
 | Candidate | Fail-to-pass checks | Pass-to-pass checks |
 | --- | --- | --- |
-| Buggy baseline | All four fail | Both pass |
-| Reference patch | All four pass | Both pass |
-| Hardcoded fixture | The single-line check passes and the other three fail | Both pass |
+| Buggy baseline | All five fail | Both pass |
+| Reference patch | All five pass | Both pass |
+| Hardcoded fixture | The single-line check passes and the other four fail | Both pass |
 
 Demo mode exits zero when these outcomes match. To grade a candidate, call the runner with its checkout module and a recorded seed:
 

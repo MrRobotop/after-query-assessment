@@ -18,6 +18,7 @@ FAIL_TO_PASS = (
     "test_stacked_single_line",
     "test_stacked_mixed_cart",
     "test_coupon_rounding_at_half_cent",
+    "test_coupon_on_fully_discounted_cart",
     "test_varied_stacked_carts",
 )
 PASS_TO_PASS = ("test_coupon_only", "test_line_discount_only")
@@ -69,6 +70,10 @@ class CheckoutTests(unittest.TestCase):
     def test_coupon_rounding_at_half_cent(self):
         # The adjusted 25 cents earns a 2.5-cent coupon, rounded up to 3 cents.
         self.assert_checkout_total([cart_line(35, 10)], 10, 22)
+
+    def test_coupon_on_fully_discounted_cart(self):
+        # Fully discounted items leave a valid zero subtotal and no further coupon amount.
+        self.assert_checkout_total([cart_line(499, 499, quantity=2)], 15, 0)
 
     def test_varied_stacked_carts(self):
         rng = random.Random(self.seed)
