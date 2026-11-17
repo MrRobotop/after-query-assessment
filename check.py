@@ -8,6 +8,7 @@ import sys
 ROOT = Path(__file__).resolve().parent
 CHECKS = (
     ("Median candidates", "-m", "unittest", "discover", "-s", "questions/01-median", "-v"),
+    ("Mixed-cart tax policy", "questions/03-tax-task/tax_demo.py"),
     ("Inventory verifier", "questions/04-reward-hacking/inventory_demo.py"),
     ("Order total caching", "questions/05-cache-consistency/cache_demo.py"),
     ("Coupon verifier", "questions/06-coupon-verifier/verify.py", "--demo"),
