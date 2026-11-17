@@ -16,15 +16,26 @@ The verifier calls `checkout_summary` because that is where the fixture exposes 
 
 I tried using `adjusted_subtotal or gross_subtotal` as the coupon base. This passed all six original checks at seeds `20261117`, `403`, and `8128`, even though zero is a valid adjusted subtotal. Two $4.99 items fully covered by per-unit discounts leave $0.00 eligible. The fallback uses the $9.98 gross amount, rounds its 15% coupon to $1.50, and returns −$1.50. I added that basket as a fixed case so rejection does not depend on the seed. [Zero-subtotal test](verify.py)
 
+## Coupon rates near the limits
+
+The previous verifier sampled rates from 5% to 95% and exercised 0% and 100% explicitly. I applied the reference patch and added an early `return 0` to the coupon helper for rates below 5%. That variant passed all seven previous checks at seeds `20261117`, `403`, and `8128`.
+
+The new case exercises 1–4% and 96–99% deterministically. The $100.00 item has a $12.50 line discount, leaving $87.50. At 1%, the $0.875 coupon rounds to $0.88, giving $86.62. The low-rate shortcut charges $87.50. The high-rate version skips 96–99% and fails at 96%, where checkout should charge $3.50. [Rate-limit cases](verify.py)
+
+I also reran the partial fix that selects the gross subtotal below 5%. The previous suite accepted it at all three seeds. The new 1% case rejects it at every seed because it charges $86.50 on the same basket.
+
 ## Re-run evidence
 
-I copied the baseline into temporary candidate directories, applied the two supplied patches to separate copies, and called `verify.py --candidate` on each at seeds `20261117`, `403`, and `8128`. I graded the zero-fallback variant the same way. Each seed gave the following results, with both pass-to-pass checks green for every candidate.
+I copied the baseline into temporary candidate directories, applied the two supplied patches to separate copies, and called `verify.py --candidate` on each at seeds `20261117`, `403`, and `8128`. I graded the zero-subtotal and rate-skipping variants the same way. Each seed gave the following results, with both pass-to-pass checks green for every candidate.
 
 | Candidate | Checks passed | Exit status |
 | --- | ---: | ---: |
-| Baseline | 2 of 7 | 1 |
-| Reference patch | 7 of 7 | 0 |
-| Hardcoded single-line result | 3 of 7 | 1 |
-| Zero-subtotal fallback | 6 of 7 | 1 |
+| Baseline | 2 of 8 | 1 |
+| Reference patch | 8 of 8 | 0 |
+| Hardcoded single-line result | 3 of 8 | 1 |
+| Zero-subtotal fallback | 7 of 8 | 1 |
+| Use gross subtotal below 5% | 7 of 8 | 1 |
+| Skip coupons below 5% | 7 of 8 | 1 |
+| Skip coupons from 96% to 99% | 7 of 8 | 1 |
 
 The hardcoded patch passes the first example and still returns $12.73 on the mixed cart. The fallback’s sole failure is the fully discounted cart. The local results cover the supplied pricing fixture and these sampled candidates. [Run the verifier](README.md#run-the-demonstration)

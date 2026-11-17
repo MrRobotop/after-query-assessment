@@ -19,6 +19,7 @@ FAIL_TO_PASS = (
     "test_stacked_mixed_cart",
     "test_coupon_rounding_at_half_cent",
     "test_coupon_on_fully_discounted_cart",
+    "test_stacked_coupons_near_rate_limits",
     "test_varied_stacked_carts",
 )
 PASS_TO_PASS = ("test_coupon_only", "test_line_discount_only")
@@ -74,6 +75,23 @@ class CheckoutTests(unittest.TestCase):
     def test_coupon_on_fully_discounted_cart(self):
         # Fully discounted items leave a valid zero subtotal and no further coupon amount.
         self.assert_checkout_total([cart_line(499, 499, quantity=2)], 15, 0)
+
+    def test_stacked_coupons_near_rate_limits(self):
+        # The $12.50 line discount leaves $87.50 eligible for each coupon.
+        # Check every valid rate outside the seeded 5–95% range and the fixed 0% and 100% cases.
+        lines = [cart_line(10_000, 1_250)]
+        expected_totals = (
+            (1, 8_662),
+            (2, 8_575),
+            (3, 8_487),
+            (4, 8_400),
+            (96, 350),
+            (97, 262),
+            (98, 175),
+            (99, 87),
+        )
+        for percent, expected_cents in expected_totals:
+            self.assert_checkout_total(lines, percent, expected_cents)
 
     def test_varied_stacked_carts(self):
         rng = random.Random(self.seed)
