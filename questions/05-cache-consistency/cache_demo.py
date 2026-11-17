@@ -144,11 +144,9 @@ class CacheReproduction(unittest.TestCase):
         self.assertEqual(self.fill_before_commit(RevisionAwareCheckout), 2000)
         self.assertEqual(self.fill_after_commit(RevisionAwareCheckout), 2000)
 
-    def test_warm_hits_rollback_and_order_isolation(self):
+    def test_rollback_preserves_the_cached_and_committed_total(self):
         writer, reader = self.services(RevisionAwareCheckout)
         self.assertEqual(reader.get_total(1), 3200)
-        self.assertEqual(reader.get_total(2), 900)
-        self.assertEqual(writer.store.snapshot_reads, 2)
 
         def fail_commit():
             raise RuntimeError("injected rollback")
@@ -157,8 +155,20 @@ class CacheReproduction(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "injected rollback"):
             writer.remove_line(1, 11)
         self.assertEqual(reader.get_total(1), 3200)
+        self.assertEqual(writer.store.snapshot_reads, 1)
+        self.assertEqual(writer.store.snapshot(1), Snapshot(revision=0, total_cents=3200))
+
+    def test_successful_removal_keeps_other_orders_warm(self):
+        writer, reader = self.services(RevisionAwareCheckout)
+        self.assertEqual(reader.get_total(1), 3200)
         self.assertEqual(reader.get_total(2), 900)
-        self.assertEqual(writer.store.snapshot_reads, 2)
+
+        writer.remove_line(1, 11)
+        self.assertEqual(reader.get_total(1), 2000)
+        self.assertEqual(reader.get_total(2), 900)
+        self.assertEqual(reader.get_total(1), 2000)
+        # Two initial fills and one recomputation of the changed order.
+        self.assertEqual(writer.store.snapshot_reads, 3)
 
 
 if __name__ == "__main__":
