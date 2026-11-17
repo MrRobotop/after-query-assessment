@@ -22,3 +22,5 @@ python3 check.py
 ```
 
 The command runs the median tests, the tax, inventory, and cache demonstrations, and the coupon verifier. The coupon demo succeeds when the baseline fails the regression checks, the reference passes every check, and the hardcoded patch passes the disclosed fixture but fails the broader checks. To grade an individual patch, see the [coupon verifier instructions](questions/06-coupon-verifier/#run-the-demonstration).
+
+The coupon verifier also checks 1–4% and 96–99% rates deterministically. The [coupon investigation](questions/06-coupon-verifier/INVESTIGATION.md) records which partial fixes those cases reject.
