@@ -14,18 +14,10 @@ The same one-cent discrepancy could arise in region resolution, line-item classi
 - **Mergeability.** A maintainer checks the patch against the existing regional policy contract and runs checkout regressions for unaffected carts.
 - **Reward-hack resistance.** An evaluator-owned suite varies region policy, prices, item taxability and line order around rounding boundaries.
 
-## Author notes
+## Reproduce the example
 
-I would supply a scrubbed failing cart, the pinned regional policies, the catalog records that establish each item's taxability, and the checkout replay command. I would first run the replay on the starting revision and confirm that its result differs from a hand-calculated total. The agent needs that evidence and the repository's policy contract to tell a real regression from a regional difference.
+The runnable model uses fictional policies to test a mixed-cart rounding failure and its controls. [Investigation and expected results](INVESTIGATION.md)
 
-For example, two fictional regions can share a 10% rate and use different rounding scopes. Region A rounds half up per line. Region B rounds half up once on the taxable subtotal. With two taxable five-cent lines and one exempt seven-cent line, the taxable lines each contribute half a cent before rounding. Region A collects 1 + 1 = 2 cents. Region B rounds 10% of 10 cents to 1 cent. A mixed-cart regression that falls back to subtotal rounding would produce 1 cent of tax in Region A.
-
-| Fixture | Subtotal (¢) | Expected tax (¢) | Expected total (¢) |
-| --- | ---: | ---: | ---: |
-| Region A, two taxable lines and one exempt line | 17 | 2 | 19 |
-| Region B, same mixed cart | 17 | 1 | 18 |
-| Region A, only the two taxable lines | 10 | 2 | 12 |
-| Region A, same prices with every line exempt | 17 | 0 | 17 |
-| Region A, original mixed cart with the exempt line priced at 31 cents | 41 | 2 | 43 |
-
-Keeping the rate fixed isolates rounding scope. Varying the exempt price catches a calculation that taxes the full subtotal. The evaluator would also reorder lines and add independently calculated variants using other prices and rates, including regions that legitimately use subtotal rounding. The replay matrix and the existing checkout suite would run from a trusted checkout of the verifier.
+```sh
+python3 -B questions/03-tax-task/tax_demo.py
+```
